@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="VolumeControlView">
+        <attr name="scale_color" format="color"/>
+        <attr name="volume_percent" format="float" />
+        <attr name="scale_lines" format="integer" />
+    </declare-styleable>
+</resources>
