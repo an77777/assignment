@@ -204,9 +204,14 @@ public class VolumeControlView extends LinearLayout {
      * @param lines
      */
     public void setLines(int lines) {
+        //ignore illegal values
+        if(lines < 0) {
+            return;
+        }
         this.lines = lines;
         this.clearView();
         this.showScale();
+        this.updateVolumePercent();
     }
 
     public double getVolumePercent() {
@@ -218,6 +223,10 @@ public class VolumeControlView extends LinearLayout {
      * @param volumePercent
      */
     public void setVolumePercent(float volumePercent) {
+        //we ignore illegal values
+        if(volumePercent < 0 || volumePercent > 100) {
+            return;
+        }
         this.volumePercent = volumePercent;
         updateVolumePercent();
     }

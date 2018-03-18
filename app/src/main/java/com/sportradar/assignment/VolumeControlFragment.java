@@ -1,19 +1,18 @@
 package com.sportradar.assignment;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+
+import com.sportradar.assignment.views.VolumeControlView;
 
 
 /**
  * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link VolumeControlFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
  * Use the {@link VolumeControlFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
@@ -27,7 +26,11 @@ public class VolumeControlFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+    private EditText volumeEditText;
+    private EditText linesEditText;
+    private Button setVolumeButton;
+    private Button setLinesButton;
+    private VolumeControlView volumeControlView;
 
     public VolumeControlFragment() {
         // Required empty public constructor
@@ -63,46 +66,44 @@ public class VolumeControlFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        //this.linesEditText = getView().findViewById(R.id.edit_text_lines);
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_volume_control, container, false);
+        View fragmentView = inflater.inflate(R.layout.fragment_volume_control, container, false);
+        this.linesEditText = fragmentView.findViewById(R.id.edit_text_lines);
+        this.setLinesButton = fragmentView.findViewById(R.id.button_set_lines);
+        this.volumeEditText = fragmentView.findViewById(R.id.edit_text_volume);
+        this.setVolumeButton = fragmentView.findViewById(R.id.button_set_volume);
+        this.volumeControlView = fragmentView.findViewById(R.id.view_volume_control);
+
+        this.setLinesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    int lines = Integer.parseInt(VolumeControlFragment.this.linesEditText.getText().toString());
+                    VolumeControlFragment.this.volumeControlView.setLines(lines);
+                } catch (Exception e) {
+                    //if the text is not number, we don't do anything
+                }
+            }
+        });
+
+
+        this.setVolumeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    float volumePercent = Float.parseFloat(VolumeControlFragment.this.volumeEditText.getText().toString());
+                    VolumeControlFragment.this.volumeControlView.setVolumePercent(volumePercent);
+                } catch (Exception e) {
+                    //if the text is not number, we don't do anything
+                }
+            }
+        });
+
+
+
+        return fragmentView;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
 }
