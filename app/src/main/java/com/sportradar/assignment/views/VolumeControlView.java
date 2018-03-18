@@ -28,7 +28,7 @@ public class VolumeControlView extends LinearLayout {
     private OnClickListener onBarClickListener = new OnClickListener() {
         @Override
         public void onClick(View view) {
-            setVolume((Integer) view.getTag());
+            setVolumeForBar((Integer) view.getTag());
         }
     };
 
@@ -58,21 +58,23 @@ public class VolumeControlView extends LinearLayout {
 
         this.root =  findViewById(R.id.root);
 
-
         TypedArray a = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.VolumeControlView, 0, 0);
-        this.lines = a.getInt(R.styleable.VolumeControlView_scale_lines, 10);
-        this.volumePercent = a.getFloat(R.styleable.VolumeControlView_volume_percent, 50);
-        this.color = a.getColor(R.styleable.VolumeControlView_scale_color, ContextCompat.getColor(getContext(), R.color.view_volume_control_scale_active));
         try {
+            this.lines = a.getInt(R.styleable.VolumeControlView_scale_lines, 10);
+            this.volumePercent = a.getFloat(R.styleable.VolumeControlView_volume_percent, 50);
+            this.color = a.getColor(R.styleable.VolumeControlView_scale_color, ContextCompat.getColor(getContext(), R.color.view_volume_control_scale_active));
         } catch (Exception e) {
             a.recycle();
         }
 
         clearView();
-        setScale();
+        showScale();
         this.setVolumePercent(this.volumePercent);
     }
 
+    /**
+     * Removes all subviews from root view
+     */
     private void clearView() {
         //just in case we remove all listeners
         for(int i = 0; i < this.root.getChildCount(); i++) {
@@ -83,7 +85,10 @@ public class VolumeControlView extends LinearLayout {
     }
 
 
-    private void setScale() {
+    /**
+     * Add the view to the root element so that scale is shown
+     */
+    private void showScale() {
         //we want views to be numbered from bottom to top
         for(int i = this.lines - 1; i >= 0; i--) {
             LayoutParams spaceParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 0.5f);
@@ -112,15 +117,17 @@ public class VolumeControlView extends LinearLayout {
         TextView label = new TextView(getContext());
         label.setLayoutParams(labelParams);
         label.setTextAlignment(TEXT_ALIGNMENT_CENTER);
-        String percent = String.format("%.2f", this.getVolumePercent());
-        String labelText = getContext().getResources().getString(R.string.view_volume_control_volume_label, percent);
-        label.setText(labelText);
         this.volumeLabel = label;
+        this.updateVolumeLabel();
         this.root.addView(label);
 
     }
 
-    private void setVolume(int barNumber) {
+    /**
+     * Sets the volume and updates scale views for selected bar
+     * @param barNumber zero base bar number from bottom to top
+     */
+    private void setVolumeForBar(int barNumber) {
         //so we don't have any rounding errors, the top most bar is always 100%
         if (barNumber == this.lines -1) {
             if (barNumber == this.lines - 1) {
@@ -132,7 +139,10 @@ public class VolumeControlView extends LinearLayout {
         }
     }
 
-    private void colorAllBarInactive() {
+    /**
+     * Colors all scale bars inactive
+     */
+    private void colorAllBarsInactive() {
         for(int i = 0; i < this.root.getChildCount(); i++) {
             View view = this.root.getChildAt(i);
             if(view.getTag() != null) {
@@ -141,6 +151,10 @@ public class VolumeControlView extends LinearLayout {
         }
     }
 
+    /**
+     * Colors scale bars with "active" color
+     * @param activeBars number of active bars that will be colored
+     */
     private void colorActiveBars(int activeBars) {
         for(int i = 0; i < this.root.getChildCount(); i++) {
             View view = this.root.getChildAt(i);
@@ -153,48 +167,74 @@ public class VolumeControlView extends LinearLayout {
         }
     }
 
+    /**
+     * Updates bottom Volume label based on current set volume
+     */
     private void updateVolumeLabel() {
         String percent = String.format("%.2f", this.getVolumePercent());
         String labelText = getContext().getResources().getString(R.string.view_volume_control_volume_label, percent);
         this.volumeLabel.setText(labelText);
     }
 
+    /**
+     * Updates scale bars with active/inactive color for current volume
+     */
     private void updateVolumePercent() {
         this.updateVolumeLabel();
 
         //update colors of active/inactive bars
         float percentPerBar = 100 / (this.lines - 1);
 
-        this.colorAllBarInactive();
+        this.colorAllBarsInactive();
 
         int numberOfActiveBars = (int) Math.ceil( this.volumePercent / percentPerBar);
         this.colorActiveBars(numberOfActiveBars);
     }
 
+    /**
+     *
+     * @return number of bars in scale
+     */
     public int getLines() {
         return lines;
     }
 
+    /**
+     * Sets the number of bars in scale and updates the scale views
+     * @param lines
+     */
     public void setLines(int lines) {
         this.lines = lines;
         this.clearView();
-        this.setScale();
+        this.showScale();
     }
 
     public double getVolumePercent() {
         return volumePercent;
     }
 
+    /**
+     * Sets the volume percent and updates the scale views
+     * @param volumePercent
+     */
     public void setVolumePercent(float volumePercent) {
         this.volumePercent = volumePercent;
         updateVolumePercent();
     }
 
 
+    /**
+     *
+     * @return the current active color of scale bars
+     */
     public int getColor() {
         return color;
     }
 
+    /**
+     * Sets the color of active bars in scale and updates the views
+     * @param color
+     */
     public void setColor(int color) {
         this.color = color;
         //this clears the color and updates the bars with new selected color
