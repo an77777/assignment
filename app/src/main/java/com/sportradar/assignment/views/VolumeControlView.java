@@ -15,6 +15,8 @@ import android.widget.TextView;
 
 import com.sportradar.assignment.R;
 
+import java.lang.ref.WeakReference;
+
 public class VolumeControlView extends LinearLayout {
 
     private int lines;
@@ -23,6 +25,8 @@ public class VolumeControlView extends LinearLayout {
 
     private LinearLayout root;
     private TextView volumeLabel;
+
+    private WeakReference<OnVolumeChangeListener> callback;
 
 
     private OnClickListener onBarClickListener = new OnClickListener() {
@@ -67,8 +71,8 @@ public class VolumeControlView extends LinearLayout {
             a.recycle();
         }
 
-        clearView();
-        showScale();
+        this.clearView();
+        this.showScale();
         this.setVolumePercent(this.volumePercent);
     }
 
@@ -131,11 +135,11 @@ public class VolumeControlView extends LinearLayout {
         //so we don't have any rounding errors, the top most bar is always 100%
         if (barNumber == this.lines -1) {
             if (barNumber == this.lines - 1) {
-                this.setVolumePercent(100);
+                this.setVolumePercent(100, true);
             }
         } else {
             float percentPerBar =  100 / (this.lines - 1);
-            this.setVolumePercent(barNumber * percentPerBar);
+            this.setVolumePercent(barNumber * percentPerBar, true);
         }
     }
 
@@ -191,6 +195,29 @@ public class VolumeControlView extends LinearLayout {
         this.colorActiveBars(numberOfActiveBars);
     }
 
+
+    /**
+     * Sets the volume percent and updates the scale views
+     * @param volumePercent
+     */
+    private void setVolumePercent(float volumePercent, boolean changedByUser) {
+        //we ignore illegal values
+        if(volumePercent < 0 || volumePercent > 100) {
+            return;
+        }
+        this.volumePercent = volumePercent;
+        updateVolumePercent();
+
+        if(this.callback != null && this.callback.get() != null) {
+            if(changedByUser) {
+                this.callback.get().onVolumeChangedByUser(this.volumePercent);
+            } else {
+                this.callback.get().onVolumeChangedExternally(this.volumePercent);
+            }
+        }
+
+    }
+
     /**
      *
      * @return number of bars in scale
@@ -214,7 +241,7 @@ public class VolumeControlView extends LinearLayout {
         this.updateVolumePercent();
     }
 
-    public double getVolumePercent() {
+    public float getVolumePercent() {
         return volumePercent;
     }
 
@@ -223,14 +250,8 @@ public class VolumeControlView extends LinearLayout {
      * @param volumePercent
      */
     public void setVolumePercent(float volumePercent) {
-        //we ignore illegal values
-        if(volumePercent < 0 || volumePercent > 100) {
-            return;
-        }
-        this.volumePercent = volumePercent;
-        updateVolumePercent();
+        this.setVolumePercent(volumePercent, false);
     }
-
 
     /**
      *
@@ -248,6 +269,24 @@ public class VolumeControlView extends LinearLayout {
         this.color = color;
         //this clears the color and updates the bars with new selected color
         this.updateVolumePercent();
+    }
+
+    public void setOnVolumeChangeListener(OnVolumeChangeListener listener) {
+        this.callback = new WeakReference<OnVolumeChangeListener>(listener);
+    }
+
+    public interface OnVolumeChangeListener {
+        /**
+         * Triggers when the user changes the volume by clicking on volume by
+         * @param volumePercent
+         */
+        void onVolumeChangedByUser(float volumePercent);
+
+        /**
+         * Triggers when setVolumePercent(float) is called.
+         * @param volumePercent
+         */
+        void onVolumeChangedExternally(float volumePercent);
     }
 
 }
